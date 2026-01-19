@@ -1,0 +1,736 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// CORE MODELS
+// ============================================
+
+enum UserRole {
+  ADMIN
+  COMMERCIAL
+  ACCOUNTING
+  READ_ONLY
+}
+
+enum QuoteType {
+  SALE
+  RENTAL
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  VALIDATED
+  SENT
+  PAID
+  PARTIAL
+  CANCELLED
+}
+
+enum ExpenseStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+enum VehicleStatus {
+  ACTIVE
+  MAINTENANCE
+  UNAVAILABLE
+}
+
+enum PaymentMethod {
+  CARD
+  CASH
+  TRANSFER
+  CHECK
+}
+
+enum DeliveryType {
+  WITH_DELIVERY
+  WITHOUT_DELIVERY
+  CUSTOMER_PICKUP
+}
+
+enum CustomerType {
+  B2B
+  B2C
+}
+
+enum AddressType {
+  BILLING
+  DELIVERY
+}
+
+// ============================================
+// Organization & Users
+// ============================================
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  legalName String?
+  vatNumber String?
+  iban      String?
+  email     String?
+  phone     String?
+  website   String?
+  logo      String?
+
+  // Address
+  street    String?
+  city      String?
+  zipCode   String?
+  country   String   @default("BE")
+
+  // Settings
+  currency  String   @default("EUR")
+  locale    String   @default("fr")
+  timezone  String   @default("Europe/Brussels")
+
+  // Modules enabled
+  modulesEnabled String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  users              User[]
+  customers          Customer[]
+  products           Product[]
+  taxes              Tax[]
+  vehicles           Vehicle[]
+  quotes             Quote[]
+  invoices           Invoice[]
+  expenses           Expense[]
+  expenseCategories  ExpenseCategory[]
+  documentNumberings DocumentNumbering[]
+  auditLogs          AuditLog[]
+
+  @@index([name])
+}
+
+model User {
+  id             String   @id @default(uuid())
+  organizationId String
+  email          String   @unique
+  password       String
+  firstName      String
+  lastName       String
+  phone          String?
+  role           UserRole @default(READ_ONLY)
+
+  // 2FA
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret  String?
+
+  // Status
+  isActive       Boolean  @default(true)
+  lastLoginAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  auditLogs    AuditLog[]
+
+  @@index([organizationId])
+  @@index([email])
+}
+
+// ============================================
+// Customers & Contacts
+// ============================================
+
+model Customer {
+  id             String       @id @default(uuid())
+  organizationId String
+  type           CustomerType @default(B2B)
+
+  // Company (B2B)
+  companyName String?
+  vatNumber   String?
+
+  // Individual (B2C)
+  firstName String?
+  lastName  String?
+
+  // Contact
+  email String?
+  phone String?
+
+  // Notes
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  addresses    CustomerAddress[]
+  contacts     Contact[]
+  quotes       Quote[]
+  invoices     Invoice[]
+
+  @@index([organizationId])
+  @@index([companyName])
+  @@index([email])
+}
+
+model CustomerAddress {
+  id         String      @id @default(uuid())
+  customerId String
+  type       AddressType
+
+  street  String
+  city    String
+  zipCode String
+  country String  @default("BE")
+
+  isDefault Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+}
+
+model Contact {
+  id         String @id @default(uuid())
+  customerId String
+
+  firstName String
+  lastName  String
+  email     String?
+  phone     String?
+  position  String?
+
+  isPrimary Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+}
+
+// ============================================
+// Products & Services
+// ============================================
+
+model Product {
+  id             String  @id @default(uuid())
+  organizationId String
+
+  name        String
+  description String?
+  sku         String?
+
+  // Pricing
+  price    Decimal  @db.Decimal(10, 2)
+  taxId    String?
+  unit     String   @default("unit") // unit, hour, day, km, etc.
+
+  // Type
+  isService Boolean @default(false)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tax          Tax?         @relation(fields: [taxId], references: [id], onDelete: SetNull)
+  quoteLines   QuoteLine[]
+  invoiceLines InvoiceLine[]
+
+  @@index([organizationId])
+  @@index([name])
+  @@index([sku])
+}
+
+model Tax {
+  id             String  @id @default(uuid())
+  organizationId String
+
+  name        String
+  rate        Decimal @db.Decimal(5, 2) // 21.00 for 21%
+  description String?
+
+  isDefault Boolean @default(false)
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  products     Product[]
+  quoteLines   QuoteLine[]
+  invoiceLines InvoiceLine[]
+
+  @@index([organizationId])
+}
+
+// ============================================
+// Vehicles
+// ============================================
+
+model Vehicle {
+  id             String        @id @default(uuid())
+  organizationId String
+
+  name           String
+  licensePlate   String
+  vin            String?
+  category       String?
+  brand          String?
+  model          String?
+  year           Int?
+
+  // Capacity
+  loadCapacity  Decimal? @db.Decimal(10, 2)
+  volume        Decimal? @db.Decimal(10, 2)
+  seats         Int?
+
+  // Pricing
+  dailyRate   Decimal? @db.Decimal(10, 2)
+  flatRate    Decimal? @db.Decimal(10, 2)
+  kmRate      Decimal? @db.Decimal(10, 2)
+
+  // Tracking
+  currentKm        Int?
+  lastMaintenance  DateTime?
+  status           VehicleStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  organization     Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  documents        VehicleDocument[]
+  quotes           Quote[]
+  deliveries       Delivery[]
+
+  @@index([organizationId])
+  @@index([licensePlate])
+}
+
+model VehicleDocument {
+  id        String @id @default(uuid())
+  vehicleId String
+
+  name        String
+  type        String // insurance, registration, inspection
+  filePath    String
+  expiryDate  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId])
+}
+
+// ============================================
+// Quotes
+// ============================================
+
+model Quote {
+  id             String      @id @default(uuid())
+  organizationId String
+  customerId     String
+  vehicleId      String?
+
+  number  String
+  type    QuoteType
+  status  QuoteStatus @default(DRAFT)
+
+  // Dates
+  date       DateTime  @default(now())
+  validUntil DateTime?
+
+  // Rental specific
+  rentalStartDate DateTime?
+  rentalEndDate   DateTime?
+  includedKm      Int?
+  extraKmRate     Decimal?  @db.Decimal(10, 2)
+
+  // Amounts
+  subtotal       Decimal @db.Decimal(10, 2) @default(0)
+  discountAmount Decimal @db.Decimal(10, 2) @default(0)
+  taxAmount      Decimal @db.Decimal(10, 2) @default(0)
+  total          Decimal @db.Decimal(10, 2) @default(0)
+
+  // Notes
+  internalNotes String?
+  customerNotes String?
+  terms         String?
+
+  // Versioning
+  version Int @default(1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer     Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  vehicle      Vehicle?         @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  lines        QuoteLine[]
+  attachments  QuoteAttachment[]
+  delivery     Delivery?
+  invoices     Invoice[]
+
+  @@unique([organizationId, number])
+  @@index([organizationId])
+  @@index([customerId])
+  @@index([status])
+  @@index([date])
+}
+
+model QuoteLine {
+  id      String @id @default(uuid())
+  quoteId String
+
+  productId String?
+
+  // Line type
+  isSection Boolean @default(false)
+
+  // Content
+  description String
+  quantity    Decimal @db.Decimal(10, 2) @default(1)
+  unitPrice   Decimal @db.Decimal(10, 2) @default(0)
+  discount    Decimal @db.Decimal(5, 2)  @default(0) // percentage
+  taxId       String?
+
+  // Calculated
+  subtotal  Decimal @db.Decimal(10, 2) @default(0)
+  taxAmount Decimal @db.Decimal(10, 2) @default(0)
+  total     Decimal @db.Decimal(10, 2) @default(0)
+
+  // Order
+  order Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  quote   Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  tax     Tax?     @relation(fields: [taxId], references: [id], onDelete: SetNull)
+
+  @@index([quoteId])
+}
+
+model QuoteAttachment {
+  id      String @id @default(uuid())
+  quoteId String
+
+  name     String
+  filePath String
+  fileSize Int
+  mimeType String
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  quote Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId])
+}
+
+// ============================================
+// Delivery
+// ============================================
+
+model Delivery {
+  id      String @id @default(uuid())
+  quoteId String @unique
+
+  vehicleId String?
+
+  type DeliveryType @default(WITH_DELIVERY)
+
+  // Address
+  street  String?
+  city    String?
+  zipCode String?
+  country String? @default("BE")
+
+  // Details
+  deliveryDate DateTime?
+  distance     Decimal?  @db.Decimal(10, 2) // km
+
+  // Pricing
+  fixedPrice Decimal? @db.Decimal(10, 2)
+  pricePerKm Decimal? @db.Decimal(10, 2)
+
+  // Return trip
+  hasReturn Boolean @default(false)
+
+  // Notes
+  driverNotes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  quote   Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  vehicle Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+
+  @@index([quoteId])
+}
+
+// ============================================
+// Invoices
+// ============================================
+
+model Invoice {
+  id             String        @id @default(uuid())
+  organizationId String
+  customerId     String
+  quoteId        String?
+
+  number String
+  status InvoiceStatus @default(DRAFT)
+
+  // Dates
+  date       DateTime @default(now())
+  dueDate    DateTime?
+
+  // Amounts
+  subtotal       Decimal @db.Decimal(10, 2) @default(0)
+  discountAmount Decimal @db.Decimal(10, 2) @default(0)
+  taxAmount      Decimal @db.Decimal(10, 2) @default(0)
+  total          Decimal @db.Decimal(10, 2) @default(0)
+  paidAmount     Decimal @db.Decimal(10, 2) @default(0)
+
+  // Notes
+  notes        String?
+  paymentTerms String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  quote        Quote?        @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  lines        InvoiceLine[]
+  payments     Payment[]
+
+  @@unique([organizationId, number])
+  @@index([organizationId])
+  @@index([customerId])
+  @@index([status])
+  @@index([date])
+}
+
+model InvoiceLine {
+  id        String @id @default(uuid())
+  invoiceId String
+
+  productId String?
+
+  // Content
+  description String
+  quantity    Decimal @db.Decimal(10, 2) @default(1)
+  unitPrice   Decimal @db.Decimal(10, 2) @default(0)
+  discount    Decimal @db.Decimal(5, 2)  @default(0)
+  taxId       String?
+
+  // Calculated
+  subtotal  Decimal @db.Decimal(10, 2) @default(0)
+  taxAmount Decimal @db.Decimal(10, 2) @default(0)
+  total     Decimal @db.Decimal(10, 2) @default(0)
+
+  // Order
+  order Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  invoice Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  tax     Tax?     @relation(fields: [taxId], references: [id], onDelete: SetNull)
+
+  @@index([invoiceId])
+}
+
+model Payment {
+  id        String @id @default(uuid())
+  invoiceId String
+
+  amount    Decimal       @db.Decimal(10, 2)
+  method    PaymentMethod
+  reference String?
+  date      DateTime      @default(now())
+  notes     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+}
+
+// ============================================
+// Expenses
+// ============================================
+
+model ExpenseCategory {
+  id             String @id @default(uuid())
+  organizationId String
+
+  name        String
+  description String?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  expenses     Expense[]
+
+  @@index([organizationId])
+}
+
+model Expense {
+  id             String        @id @default(uuid())
+  organizationId String
+  categoryId     String?
+
+  status ExpenseStatus @default(DRAFT)
+
+  // Details
+  date        DateTime
+  supplier    String
+  description String
+
+  // Amounts
+  amountHT  Decimal? @db.Decimal(10, 2)
+  taxRate   Decimal? @db.Decimal(5, 2)
+  taxAmount Decimal? @db.Decimal(10, 2)
+  amountTTC Decimal  @db.Decimal(10, 2)
+
+  // Payment
+  paymentMethod PaymentMethod
+  reference     String?
+
+  // Allocation
+  costCenter String?
+  project    String?
+
+  // Notes
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  category     ExpenseCategory?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  attachments  ExpenseAttachment[]
+
+  @@index([organizationId])
+  @@index([date])
+  @@index([status])
+}
+
+model ExpenseAttachment {
+  id        String @id @default(uuid())
+  expenseId String
+
+  name     String
+  filePath String
+  fileSize Int
+  mimeType String
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+
+  @@index([expenseId])
+}
+
+// ============================================
+// Settings
+// ============================================
+
+model DocumentNumbering {
+  id             String @id @default(uuid())
+  organizationId String
+
+  type   String // quote_sale, quote_rental, invoice
+  prefix String
+  next   Int    @default(1)
+  length Int    @default(6) // padding zeros
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, type])
+  @@index([organizationId])
+}
+
+// ============================================
+// Audit
+// ============================================
+
+model AuditLog {
+  id             String @id @default(uuid())
+  organizationId String
+  userId         String?
+
+  entity     String // User, Quote, Invoice, etc.
+  entityId   String
+  action     String // CREATE, UPDATE, DELETE
+  changes    Json?  // JSON with old/new values
+  ipAddress  String?
+  userAgent  String?
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([entity])
+  @@index([entityId])
+  @@index([createdAt])
+}
