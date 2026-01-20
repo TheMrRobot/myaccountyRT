@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../core/prisma/prisma.service';
+import { PdfService, QuotePdfData } from '../../core/pdf/pdf.service';
+import { ExportService, QuoteExportData } from '../../core/export/export.service';
 import { CreateQuoteDto } from './dto/create-quote.dto';
 import { UpdateQuoteDto } from './dto/update-quote.dto';
 import { CreateQuoteLineDto } from './dto/create-quote-line.dto';
@@ -9,7 +11,11 @@ import { QuoteStatus, Prisma } from '@prisma/client';
 
 @Injectable()
 export class QuotesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private pdfService: PdfService,
+    private exportService: ExportService,
+  ) {}
 
   async create(organizationId: string, createQuoteDto: CreateQuoteDto) {
     // Generate quote number
@@ -299,7 +305,7 @@ export class QuotesService {
         customerNotes: quote.customerNotes,
         terms: quote.terms,
         lines: {
-          create: quote.lines.map(line => ({
+          create: quote.lines.map((line: any) => ({
             productId: line.productId,
             isSection: line.isSection,
             description: line.description,
@@ -337,9 +343,9 @@ export class QuotesService {
       where: { quoteId, isSection: false },
     });
 
-    const subtotal = lines.reduce((sum, line) => sum + Number(line.subtotal), 0);
-    const taxAmount = lines.reduce((sum, line) => sum + Number(line.taxAmount), 0);
-    const total = lines.reduce((sum, line) => sum + Number(line.total), 0);
+    const subtotal = lines.reduce((sum: number, line: any) => sum + Number(line.subtotal), 0);
+    const taxAmount = lines.reduce((sum: number, line: any) => sum + Number(line.taxAmount), 0);
+    const total = lines.reduce((sum: number, line: any) => sum + Number(line.total), 0);
 
     await this.prisma.quote.update({
       where: { id: quoteId },
@@ -405,5 +411,150 @@ export class QuotesService {
     });
 
     return number;
+  }
+
+  /**
+   * Generate PDF for a quote
+   */
+  async generatePdf(organizationId: string, id: string): Promise<Buffer> {
+    const quote = await this.findOne(organizationId, id);
+    const organization = await this.prisma.organization.findUnique({
+      where: { id: organizationId },
+    });
+
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    // Get customer address for display
+    const billingAddress = quote.customer.addresses.find(a => a.type === 'BILLING');
+    const customerAddress = billingAddress
+      ? `${billingAddress.street}, ${billingAddress.zipCode} ${billingAddress.city}, ${billingAddress.country}`
+      : '';
+
+    // Get delivery address if exists
+    let deliveryAddress = '';
+    if (quote.delivery?.street) {
+      deliveryAddress = `${quote.delivery.street}, ${quote.delivery.zipCode} ${quote.delivery.city}, ${quote.delivery.country}`;
+    }
+
+    // Prepare PDF data
+    const pdfData: QuotePdfData = {
+      organization: {
+        name: organization.name,
+        vatNumber: organization.vatNumber,
+        address: `${organization.address}, ${organization.zipCode} ${organization.city}, ${organization.country}`,
+        email: organization.email,
+        phone: organization.phone,
+        website: organization.website,
+        logo: organization.logoUrl,
+      },
+      customer: {
+        name: quote.customer.type === 'B2B'
+          ? quote.customer.companyName
+          : `${quote.customer.firstName} ${quote.customer.lastName}`,
+        vatNumber: quote.customer.vatNumber,
+        address: customerAddress,
+        email: quote.customer.email,
+        phone: quote.customer.phone,
+      },
+      quote: {
+        number: quote.number,
+        date: new Date(quote.date).toLocaleDateString('fr-FR'),
+        validUntil: quote.validUntil ? new Date(quote.validUntil).toLocaleDateString('fr-FR') : undefined,
+        type: quote.type,
+        status: quote.status,
+        rentalStartDate: quote.rentalStartDate ? new Date(quote.rentalStartDate).toLocaleDateString('fr-FR') : undefined,
+        rentalEndDate: quote.rentalEndDate ? new Date(quote.rentalEndDate).toLocaleDateString('fr-FR') : undefined,
+        includedKm: quote.includedKm,
+        extraKmRate: quote.extraKmRate ? Number(quote.extraKmRate) : undefined,
+      },
+      lines: quote.lines.map((line: any) => ({
+        description: line.description,
+        quantity: Number(line.quantity),
+        unitPrice: Number(line.unitPrice),
+        discount: Number(line.discount),
+        taxRate: line.tax ? Number(line.tax.rate) : 0,
+        subtotal: Number(line.subtotal),
+        taxAmount: Number(line.taxAmount),
+        total: Number(line.total),
+        isSection: line.isSection,
+      })),
+      delivery: quote.delivery ? {
+        type: quote.delivery.type,
+        address: deliveryAddress,
+        deliveryDate: quote.delivery.deliveryDate ? new Date(quote.delivery.deliveryDate).toLocaleDateString('fr-FR') : undefined,
+        distance: quote.delivery.distance ? Number(quote.delivery.distance) : undefined,
+        fixedPrice: quote.delivery.fixedPrice ? Number(quote.delivery.fixedPrice) : undefined,
+        pricePerKm: quote.delivery.pricePerKm ? Number(quote.delivery.pricePerKm) : undefined,
+        hasReturn: quote.delivery.hasReturn,
+      } : undefined,
+      totals: {
+        subtotal: Number(quote.subtotal),
+        discountAmount: Number(quote.discountAmount),
+        taxAmount: Number(quote.taxAmount),
+        total: Number(quote.total),
+      },
+      notes: {
+        customer: quote.customerNotes,
+        terms: quote.terms,
+      },
+    };
+
+    return this.pdfService.generateQuotePdf(pdfData);
+  }
+
+  /**
+   * Export quotes to CSV
+   */
+  async exportCsv(organizationId: string): Promise<string> {
+    const quotes = await this.findAll(organizationId);
+
+    const exportData: QuoteExportData = {
+      quotes: quotes.map((quote: any) => ({
+        number: quote.number,
+        date: new Date(quote.date).toLocaleDateString('fr-FR'),
+        validUntil: quote.validUntil ? new Date(quote.validUntil).toLocaleDateString('fr-FR') : undefined,
+        type: quote.type,
+        status: quote.status,
+        customerName: quote.customer.type === 'B2B'
+          ? quote.customer.companyName
+          : `${quote.customer.firstName} ${quote.customer.lastName}`,
+        customerVat: quote.customer.vatNumber,
+        subtotal: Number(quote.subtotal),
+        taxAmount: Number(quote.taxAmount),
+        total: Number(quote.total),
+        lineCount: quote.lines.length,
+      })),
+    };
+
+    return this.exportService.generateQuotesCsv(exportData);
+  }
+
+  /**
+   * Export quotes to XLSX
+   */
+  async exportXlsx(organizationId: string): Promise<Buffer> {
+    const quotes = await this.findAll(organizationId);
+
+    const exportData: QuoteExportData = {
+      quotes: quotes.map((quote: any) => ({
+        number: quote.number,
+        date: new Date(quote.date).toLocaleDateString('fr-FR'),
+        validUntil: quote.validUntil ? new Date(quote.validUntil).toLocaleDateString('fr-FR') : undefined,
+        type: quote.type,
+        status: quote.status,
+        customerName: quote.customer.type === 'B2B'
+          ? quote.customer.companyName
+          : `${quote.customer.firstName} ${quote.customer.lastName}`,
+        customerVat: quote.customer.vatNumber,
+        subtotal: Number(quote.subtotal),
+        taxAmount: Number(quote.taxAmount),
+        total: Number(quote.total),
+        lineCount: quote.lines.length,
+      })),
+    };
+
+    return this.exportService.generateQuotesXlsx(exportData);
   }
 }

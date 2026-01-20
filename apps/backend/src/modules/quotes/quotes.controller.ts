@@ -7,7 +7,10 @@ import {
   Param,
   Delete,
   UseGuards,
+  Res,
+  Header,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { QuotesService } from './quotes.service';
 import { CreateQuoteDto } from './dto/create-quote.dto';
@@ -139,5 +142,53 @@ export class QuotesController {
     @Param('id') id: string,
   ) {
     return this.quotesService.duplicate(organizationId, id);
+  }
+
+  // PDF and Export endpoints
+  @Get(':id/pdf')
+  @ApiOperation({ summary: 'Generate PDF for quote' })
+  @ApiResponse({ status: 200, description: 'PDF generated', type: 'application/pdf' })
+  @ApiResponse({ status: 404, description: 'Quote not found' })
+  @Header('Content-Type', 'application/pdf')
+  async generatePdf(
+    @CurrentUser('organizationId') organizationId: string,
+    @Param('id') id: string,
+    @Res() res: Response,
+  ) {
+    const pdf = await this.quotesService.generatePdf(organizationId, id);
+    const quote = await this.quotesService.findOne(organizationId, id);
+
+    res.setHeader('Content-Disposition', `attachment; filename="quote-${quote.number}.pdf"`);
+    res.send(pdf);
+  }
+
+  @Get('export/csv')
+  @ApiOperation({ summary: 'Export all quotes to CSV' })
+  @ApiResponse({ status: 200, description: 'CSV exported', type: 'text/csv' })
+  @Header('Content-Type', 'text/csv; charset=utf-8')
+  async exportCsv(
+    @CurrentUser('organizationId') organizationId: string,
+    @Res() res: Response,
+  ) {
+    const csv = await this.quotesService.exportCsv(organizationId);
+    const timestamp = new Date().toISOString().split('T')[0];
+
+    res.setHeader('Content-Disposition', `attachment; filename="quotes-${timestamp}.csv"`);
+    res.send(csv);
+  }
+
+  @Get('export/xlsx')
+  @ApiOperation({ summary: 'Export all quotes to XLSX' })
+  @ApiResponse({ status: 200, description: 'XLSX exported', type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+  @Header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+  async exportXlsx(
+    @CurrentUser('organizationId') organizationId: string,
+    @Res() res: Response,
+  ) {
+    const xlsx = await this.quotesService.exportXlsx(organizationId);
+    const timestamp = new Date().toISOString().split('T')[0];
+
+    res.setHeader('Content-Disposition', `attachment; filename="quotes-${timestamp}.xlsx"`);
+    res.send(xlsx);
   }
 }
