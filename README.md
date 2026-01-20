@@ -148,34 +148,51 @@ Voir le schéma complet dans `apps/backend/prisma/schema.prisma`
 
 ## 🗓️ Plan de Développement
 
-### ✅ Sprint 1 - Core (Complété)
-- [x] Architecture et setup projet
-- [x] Prisma schema complet
-- [x] Module Authentication (JWT, guards, strategies)
-- [ ] Modules: Organizations, Users, Customers, Products, Taxes
-- [ ] Settings et Audit logs
+### ✅ Sprint 1 - Core (100% Complété)
+- [x] Architecture et setup projet (Turborepo + pnpm)
+- [x] Prisma schema complet (20+ modèles)
+- [x] Module Authentication (JWT, guards, strategies, refresh tokens)
+- [x] Module Organizations (multi-tenant)
+- [x] Module Users (RBAC avec 4 rôles)
+- [x] Module Customers (B2B/B2C, adresses, contacts)
+- [x] Module Products (produits et services)
+- [x] Module Taxes (gestion TVA)
+- [x] Module Settings (numérotation automatique)
+- [x] Module Audit (logs de traçabilité)
+- [x] Module Files (upload et gestion fichiers)
 
-### 🔄 Sprint 2 - Devis Vente (En cours)
-- [ ] CRUD Devis de vente
-- [ ] Lignes de devis avec calculs (HT, TVA, TTC)
-- [ ] Génération PDF
-- [ ] Exports CSV/XLSX
+### ✅ Sprint 2 - Devis Vente (100% Complété)
+- [x] CRUD Devis de vente et location
+- [x] Lignes de devis avec calculs (HT, TVA, TTC)
+- [x] Génération PDF professionnelle (Puppeteer)
+- [x] Exports CSV/XLSX (ExcelJS avec styling)
+- [x] Duplication de devis
+- [x] Gestion statuts et workflow
+- [x] Numérotation automatique (QV-XXXXX, QL-XXXXX)
 
-### Sprint 3 - Location & Véhicules
-- [ ] Module Véhicules (CRUD, documents)
-- [ ] Devis de location
-- [ ] Gestion disponibilité véhicules
+### ✅ Sprint 3 - Location & Véhicules (100% Complété)
+- [x] Module Véhicules (CRUD complet)
+- [x] Gestion documents véhicules (carte grise, assurance, contrôle)
+- [x] Devis de location avec période et kilométrage
+- [x] Vérification disponibilité véhicules
+- [x] Tracking maintenance et statuts
 
-### Sprint 4 - Livraison & Facturation
-- [ ] Module Livraison
-- [ ] Conversion devis → facture
-- [ ] Gestion paiements
+### ✅ Sprint 4 - Livraison & Facturation (100% Complété)
+- [x] Module Livraison (intégré aux devis)
+- [x] Calcul coûts de livraison (fixe + distance)
+- [x] Support trajet retour
+- [x] Conversion devis → facture automatique
+- [x] Module Facturation complet
+- [x] Gestion paiements multiples
+- [x] Calcul automatique des statuts (PAID, PARTIAL)
 
-### Sprint 5 - Dépenses & Finalisation
-- [ ] Module Dépenses avec uploads
-- [ ] Catégorisation et workflows
-- [ ] Exports comptables
-- [ ] Security hardening
+### ✅ Sprint 5 - Dépenses & Finalisation (100% Complété)
+- [x] Module Dépenses avec uploads multiples
+- [x] Catégorisation personnalisable
+- [x] Workflow d'approbation (DRAFT → SUBMITTED → APPROVED/REJECTED)
+- [x] Calcul automatique TVA (TTC → HT)
+- [x] Exports pour comptabilité
+- [x] Security hardening (CORS, Helmet, Rate Limiting)
 
 ## 🧪 Tests
 
@@ -247,14 +264,27 @@ Propriétaire - Tous droits réservés
 
 ## 🏁 État du Projet
 
-**Version**: 1.0.0 (MVP en développement)
+**Version**: 1.0.0 (Backend MVP Complété ✅)
 
-**Progression**:
-- ✅ Architecture et setup
-- ✅ Prisma schema complet
-- ✅ Authentication system
-- 🔄 Core modules en cours
-- ⏳ Business modules à venir
+**Progression Backend**:
+- ✅ Architecture et setup (100%)
+- ✅ Prisma schema complet (20+ modèles)
+- ✅ Authentication system (JWT + Refresh tokens)
+- ✅ Core modules (8 modules - 100%)
+- ✅ Business modules (5 modules - 100%)
+- ✅ PDF Generation (Puppeteer)
+- ✅ Exports CSV/XLSX (ExcelJS)
+- ✅ 80+ endpoints API REST
+- ✅ Documentation Swagger complète
+- ✅ Multi-tenant + RBAC + Audit
+
+**Backend MVP: 100% ✅**
+
+**Prochaines Étapes**:
+- ⏳ Frontend React (Sprint 6)
+- ⏳ Tests unitaires et E2E
+- ⏳ CI/CD Pipeline
+- ⏳ Déploiement production
 
 ---
 
