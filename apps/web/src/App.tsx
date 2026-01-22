@@ -7,6 +7,7 @@ import Layout from './components/Layout';
 import LoginPage from './pages/auth/LoginPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import QuotesListPage from './pages/quotes/QuotesListPage';
+import QuoteCreatePage from './pages/quotes/QuoteCreatePage';
 import QuoteDetailPage from './pages/quotes/QuoteDetailPage';
 import CustomersListPage from './pages/customers/CustomersListPage';
 
@@ -29,6 +30,7 @@ function App() {
 
           {/* Quotes */}
           <Route path="/quotes" element={<QuotesListPage />} />
+          <Route path="/quotes/new" element={<QuoteCreatePage />} />
           <Route path="/quotes/:id" element={<QuoteDetailPage />} />
 
           {/* Customers */}
