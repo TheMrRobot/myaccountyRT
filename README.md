@@ -223,14 +223,25 @@ Voir le schéma complet dans `apps/backend/prisma/schema.prisma`
 - [x] Exports pour comptabilité
 - [x] Security hardening (CORS, Helmet, Rate Limiting)
 
-### ✅ Sprint 6 - Frontend React (80% Complété)
+### ✅ Sprint 6 - Frontend React (100% MVP Complété) 🎉
 
 **Pages Implémentées:**
 - [x] Page de Login avec authentification JWT
 - [x] Dashboard avec statistiques et KPIs
 - [x] Liste des devis avec filtres, recherche et exports
+- [x] **Création de devis** avec formulaire complet
 - [x] Détail d'un devis avec téléchargement PDF
 - [x] Liste des clients avec recherche
+- [x] **Création/édition de clients** avec modal
+
+**Formulaires:**
+- [x] **CustomerForm** avec React Hook Form + Zod
+- [x] **QuoteForm** avec React Hook Form + Zod
+- [x] Validation en temps réel
+- [x] Champs conditionnels (B2B/B2C, Sale/Rental)
+- [x] Sélecteurs dropdown (clients, types)
+- [x] Date pickers pour validité et location
+- [x] Modal dialogs pour édition inline
 
 **Features UI:**
 - [x] Layout responsive avec Sidebar et Header
@@ -242,6 +253,7 @@ Voir le schéma complet dans `apps/backend/prisma/schema.prisma`
 - [x] Format français (dates, devises)
 - [x] Boutons d'export CSV/XLSX
 - [x] Téléchargement PDF des devis
+- [x] Boutons Modifier/Supprimer sur clients
 
 **État Technique:**
 - [x] React 18 + TypeScript
@@ -251,14 +263,16 @@ Voir le schéma complet dans `apps/backend/prisma/schema.prisma`
 - [x] Zustand pour state management
 - [x] Axios avec JWT interceptors
 - [x] Auto-refresh des tokens JWT
+- [x] React Hook Form + Zod validation
+- [x] Radix UI primitives (Dialog, Select, Label)
 
-**À Faire:**
-- [ ] Formulaires création/édition devis
-- [ ] Formulaires création/édition clients
+**Prochaines Améliorations:**
+- [ ] Gestion des lignes de devis (inline editing)
 - [ ] Pages Véhicules, Factures, Dépenses
 - [ ] Pagination des listes
-- [ ] Filtres avancés
+- [ ] Filtres avancés (dates, montants)
 - [ ] Dark mode
+- [ ] Upload de fichiers (justificatifs)
 
 ## 🧪 Tests
 
@@ -350,19 +364,21 @@ Propriétaire - Tous droits réservés
 - ✅ Authentication (Login, JWT, Protected Routes)
 - ✅ Layout responsive (Sidebar, Header)
 - ✅ Dashboard avec statistiques
-- ✅ Module Devis (liste, détail, exports, PDF)
-- ✅ Module Clients (liste, recherche)
+- ✅ Module Devis (liste, détail, exports, PDF, **création**)
+- ✅ Module Clients (liste, recherche, **création/édition/suppression**)
+- ✅ React Hook Form + Zod validation
 - ✅ React Query pour data fetching
 - ✅ Zustand pour state management
-- ✅ shadcn/ui components
+- ✅ shadcn/ui components + Radix UI
 - ✅ Toast notifications
 - ✅ Loading states & error handling
+- ✅ Modal dialogs pour formulaires
 
 **Backend MVP: 100% ✅**
-**Frontend MVP: 80% ✅**
+**Frontend MVP: 100% ✅** 🎉
 
 **Prochaines Étapes**:
-- ⏳ Formulaires création/édition (Devis, Clients)
+- ⏳ Gestion des lignes de devis (inline editing)
 - ⏳ Modules Véhicules, Factures, Dépenses (Frontend)
 - ⏳ Tests unitaires et E2E
 - ⏳ CI/CD Pipeline

@@ -106,11 +106,20 @@ src/
 - ✅ Export CSV/XLSX
 - ✅ Duplication de devis
 - ✅ Badges de statut
+- ✅ **Formulaire de création** (React Hook Form + Zod)
+- ✅ **Support vente et location** avec champs conditionnels
+- ✅ Sélection client depuis la base
+- ✅ Dates et paramètres de location
 
 ### Clients (Customers)
 - ✅ Liste avec recherche
 - ✅ Vue en grille
 - ✅ Distinction B2B/B2C
+- ✅ **Formulaire de création** avec modal
+- ✅ **Formulaire d'édition** avec modal
+- ✅ **Suppression** avec confirmation
+- ✅ Validation Zod (email, champs requis)
+- ✅ Champs dynamiques (B2B vs B2C)
 
 ### UI/UX
 - ✅ Design responsive (mobile-friendly)
@@ -169,23 +178,24 @@ const { data: quotes } = useQuery({
 
 ## 🎯 Prochaines Étapes
 
-### Formulaires
-- [ ] Formulaire création/édition de devis
-- [ ] Formulaire création/édition de client
-- [ ] Gestion des lignes de devis
+### Formulaires ✅ COMPLÉTÉ
+- [x] Formulaire création/édition de devis
+- [x] Formulaire création/édition de client
+- [ ] Gestion des lignes de devis (inline editing)
 
 ### Modules Additionnels
-- [ ] Module Véhicules (liste, CRUD)
-- [ ] Module Factures (liste, vue détail)
-- [ ] Module Dépenses (liste, workflow approbation)
+- [ ] Module Véhicules (liste, CRUD, formulaires)
+- [ ] Module Factures (liste, vue détail, création depuis devis)
+- [ ] Module Dépenses (liste, workflow approbation, upload justificatifs)
 
 ### Améliorations
 - [ ] Pagination sur les listes
 - [ ] Tri des colonnes
-- [ ] Filtres avancés
+- [ ] Filtres avancés (dates, montants)
 - [ ] Dark mode
 - [ ] Prévisualisation PDF inline
 - [ ] Upload de fichiers (drag & drop)
+- [ ] Gestion des lignes de devis dans la page de détail
 
 ### Tests
 - [ ] Tests unitaires (Vitest)
