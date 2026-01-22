@@ -114,7 +114,7 @@ Write-Host "  pnpm db:seed" -ForegroundColor White
 
 Write-Host "`nIf issues persist, check:" -ForegroundColor Yellow
 Write-Host "  1. Docker Desktop is fully started (check system tray)" -ForegroundColor White
-Write-Host "  2. Wait at least 15 seconds after 'docker-compose up'" -ForegroundColor White
+Write-Host "  2. Wait at least 15 seconds after docker-compose up" -ForegroundColor White
 Write-Host "  3. Check logs: docker logs myaccount-postgres" -ForegroundColor White
 Write-Host "  4. Restart Docker Desktop completely" -ForegroundColor White
 Write-Host ""
