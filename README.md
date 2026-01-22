@@ -40,8 +40,8 @@ Plateforme SaaS modulaire multi-tenant pour la gestion de devis (vente/location)
 ```
 myaccount-saas/
 ├── apps/
-│   ├── backend/          # API NestJS
-│   └── web/              # Frontend React (à créer)
+│   ├── backend/          # API NestJS ✅
+│   └── web/              # Frontend React ✅
 ├── packages/             # Packages partagés (à créer)
 ├── docker-compose.yml    # Services Docker
 └── turbo.json           # Configuration Turborepo
@@ -78,21 +78,50 @@ myaccount-saas/
 ### Installation
 
 ```bash
-# Installer les dépendances
+# Installer les dépendances pour tout le monorepo
 pnpm install
 
 # Démarrer les services Docker (PostgreSQL, Redis)
 pnpm docker:up
 
 # Générer le client Prisma
+cd apps/backend
 pnpm db:generate
 
 # Créer la base de données
 pnpm db:push
 
-# Démarrer le backend en mode dev
+# Peupler avec des données de démonstration
+pnpm db:seed
+
+# Démarrer le backend en mode dev (terminal 1)
 pnpm dev
 ```
+
+### Démarrer le Frontend
+
+Dans un nouveau terminal :
+
+```bash
+# Démarrer le frontend React (terminal 2)
+cd apps/web
+pnpm dev
+```
+
+L'application sera accessible à :
+- **Backend API**: http://localhost:3000/api/v1
+- **Swagger Docs**: http://localhost:3000/api/docs
+- **Frontend**: http://localhost:3001
+
+### Comptes de Démonstration
+
+Utilisez ces comptes pour vous connecter au frontend :
+
+| Email | Mot de passe | Rôle |
+|-------|--------------|------|
+| admin@democompany.be | admin123 | Administrateur |
+| commercial@democompany.be | admin123 | Commercial |
+| accounting@democompany.be | admin123 | Comptable |
 
 ### Variables d'environnement
 
@@ -194,6 +223,43 @@ Voir le schéma complet dans `apps/backend/prisma/schema.prisma`
 - [x] Exports pour comptabilité
 - [x] Security hardening (CORS, Helmet, Rate Limiting)
 
+### ✅ Sprint 6 - Frontend React (80% Complété)
+
+**Pages Implémentées:**
+- [x] Page de Login avec authentification JWT
+- [x] Dashboard avec statistiques et KPIs
+- [x] Liste des devis avec filtres, recherche et exports
+- [x] Détail d'un devis avec téléchargement PDF
+- [x] Liste des clients avec recherche
+
+**Features UI:**
+- [x] Layout responsive avec Sidebar et Header
+- [x] Navigation mobile (hamburger menu)
+- [x] Protected routes avec redirection
+- [x] Toast notifications (succès/erreur)
+- [x] Loading states sur toutes les pages
+- [x] Status badges avec couleurs
+- [x] Format français (dates, devises)
+- [x] Boutons d'export CSV/XLSX
+- [x] Téléchargement PDF des devis
+
+**État Technique:**
+- [x] React 18 + TypeScript
+- [x] Vite pour build ultra-rapide
+- [x] Tailwind CSS + shadcn/ui
+- [x] React Query pour data fetching
+- [x] Zustand pour state management
+- [x] Axios avec JWT interceptors
+- [x] Auto-refresh des tokens JWT
+
+**À Faire:**
+- [ ] Formulaires création/édition devis
+- [ ] Formulaires création/édition clients
+- [ ] Pages Véhicules, Factures, Dépenses
+- [ ] Pagination des listes
+- [ ] Filtres avancés
+- [ ] Dark mode
+
 ## 🧪 Tests
 
 ```bash
@@ -264,24 +330,40 @@ Propriétaire - Tous droits réservés
 
 ## 🏁 État du Projet
 
-**Version**: 1.0.0 (Backend MVP Complété ✅)
+**Version**: 1.0.0 (MVP Backend + Frontend Complété ✅)
 
 **Progression Backend**:
 - ✅ Architecture et setup (100%)
 - ✅ Prisma schema complet (20+ modèles)
 - ✅ Authentication system (JWT + Refresh tokens)
-- ✅ Core modules (8 modules - 100%)
+- ✅ Core modules (9 modules - 100%)
 - ✅ Business modules (5 modules - 100%)
 - ✅ PDF Generation (Puppeteer)
 - ✅ Exports CSV/XLSX (ExcelJS)
-- ✅ 80+ endpoints API REST
+- ✅ 85+ endpoints API REST
 - ✅ Documentation Swagger complète
 - ✅ Multi-tenant + RBAC + Audit
 
+**Progression Frontend**:
+- ✅ Setup Vite + React + TypeScript
+- ✅ Routing avec React Router
+- ✅ Authentication (Login, JWT, Protected Routes)
+- ✅ Layout responsive (Sidebar, Header)
+- ✅ Dashboard avec statistiques
+- ✅ Module Devis (liste, détail, exports, PDF)
+- ✅ Module Clients (liste, recherche)
+- ✅ React Query pour data fetching
+- ✅ Zustand pour state management
+- ✅ shadcn/ui components
+- ✅ Toast notifications
+- ✅ Loading states & error handling
+
 **Backend MVP: 100% ✅**
+**Frontend MVP: 80% ✅**
 
 **Prochaines Étapes**:
-- ⏳ Frontend React (Sprint 6)
+- ⏳ Formulaires création/édition (Devis, Clients)
+- ⏳ Modules Véhicules, Factures, Dépenses (Frontend)
 - ⏳ Tests unitaires et E2E
 - ⏳ CI/CD Pipeline
 - ⏳ Déploiement production
