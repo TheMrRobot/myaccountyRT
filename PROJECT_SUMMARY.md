@@ -107,9 +107,12 @@ Fonctionnalités:
 - Changement de statut avec validation
 - Verrouillage après acceptation
 - Numérotation automatique (QV-000001, QL-000001)
+- **Génération PDF** avec template professionnel
+- **Export CSV** avec UTF-8 BOM
+- **Export XLSX** avec styling ExcelJS
 
-**Endpoints:** 9 endpoints REST
-**Fichiers:** 9 fichiers (controller, service, 5 DTOs)
+**Endpoints:** 12 endpoints REST (9 CRUD + 3 exports)
+**Fichiers:** 9 fichiers modules + 2 services core (PDF, Export)
 
 #### 2. **Vehicles** (Gestion Parc Véhicules)
 Fonctionnalités:
@@ -294,14 +297,15 @@ Données de démonstration:
 
 | Métrique | Valeur |
 |----------|--------|
-| **Fichiers créés** | 104 |
-| **Lignes de code** | 7,732 |
-| **Modules Core** | 8 (100%) |
-| **Modules Métier** | 5 (100%) |
+| **Fichiers TypeScript** | 92+ |
+| **Lignes de code** | ~6,000 |
+| **Modules Core** | 9 (Auth, Org, Users, Customers, Products, Taxes, Settings, Audit, Files) |
+| **Modules Métier** | 5 (Quotes, Vehicles, Delivery, Invoices, Expenses) |
+| **Services Core** | 2 (PDF, Export) |
 | **Modèles Prisma** | 20+ |
-| **Endpoints API** | 80+ |
+| **Endpoints API** | 85+ |
 | **DTOs créés** | 40+ |
-| **Services** | 13 |
+| **Services** | 15 |
 | **Controllers** | 13 |
 
 ---
@@ -358,21 +362,7 @@ Utilisateurs disponibles:
 
 ### Priorité Haute
 
-1. **PDF Generation** (Sprint 2)
-   - Service PDF avec Puppeteer
-   - Templates pour devis
-   - Templates pour factures
-   - Variables dynamiques
-   - Branding personnalisé
-
-2. **Exports CSV/XLSX** (Sprint 5)
-   - Service d'export avec ExcelJS
-   - Export listes de devis
-   - Export listes de factures
-   - Export listes de dépenses
-   - Filtres et colonnes personnalisables
-
-3. **Frontend React** (Sprint 6)
+1. **Frontend React** (Sprint 6)
    - Setup Vite + React + TypeScript
    - Tailwind CSS + shadcn/ui
    - Authentification et routing
@@ -427,18 +417,33 @@ Utilisateurs disponibles:
 - [x] Seed data
 - [x] 3 guides complets
 
+### ✅ Complété (Sprint 2 - Ajout PDF & Exports)
+
+- [x] **PDF Generation Service** (`src/core/pdf/`)
+  - Génération PDF professionnelle avec Puppeteer
+  - Templates HTML/CSS modernes et responsive
+  - Support devis vente et location
+  - Informations complètes (entreprise, client, lignes, totaux)
+  - Endpoint: `GET /quotes/:id/pdf`
+
+- [x] **Export Service** (`src/core/export/`)
+  - Export CSV avec UTF-8 BOM pour Excel
+  - Export XLSX avec ExcelJS (styling professionnel)
+  - En-têtes colorés, lignes alternées, totaux
+  - Endpoints: `GET /quotes/export/csv` et `GET /quotes/export/xlsx`
+
 ### ⏳ À Faire (Sprint 6+)
 
-- [ ] PDF generation
-- [ ] Exports CSV/XLSX
-- [ ] Frontend React
-- [ ] Tests (unit + e2e)
-- [ ] CI/CD
-- [ ] Déploiement production
+- [ ] Frontend React (Dashboard, CRUD interfaces)
+- [ ] Tests unitaires et E2E (Jest, Supertest)
+- [ ] CI/CD Pipeline (GitHub Actions)
+- [ ] Déploiement production (Docker, AWS/DO)
+- [ ] Monitoring et logs (Sentry, DataDog)
 
 ### Progression Globale
 
 **Backend MVP: 100% ✅**
+**PDF & Exports: 100% ✅**
 **Frontend MVP: 0% ⏳**
 **Tests: 0% ⏳**
 **Déploiement: 0% ⏳**

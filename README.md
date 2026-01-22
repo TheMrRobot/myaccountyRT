@@ -40,8 +40,8 @@ Plateforme SaaS modulaire multi-tenant pour la gestion de devis (vente/location)
 ```
 myaccount-saas/
 ├── apps/
-│   ├── backend/          # API NestJS
-│   └── web/              # Frontend React (à créer)
+│   ├── backend/          # API NestJS ✅
+│   └── web/              # Frontend React ✅
 ├── packages/             # Packages partagés (à créer)
 ├── docker-compose.yml    # Services Docker
 └── turbo.json           # Configuration Turborepo
@@ -78,21 +78,50 @@ myaccount-saas/
 ### Installation
 
 ```bash
-# Installer les dépendances
+# Installer les dépendances pour tout le monorepo
 pnpm install
 
 # Démarrer les services Docker (PostgreSQL, Redis)
 pnpm docker:up
 
 # Générer le client Prisma
+cd apps/backend
 pnpm db:generate
 
 # Créer la base de données
 pnpm db:push
 
-# Démarrer le backend en mode dev
+# Peupler avec des données de démonstration
+pnpm db:seed
+
+# Démarrer le backend en mode dev (terminal 1)
 pnpm dev
 ```
+
+### Démarrer le Frontend
+
+Dans un nouveau terminal :
+
+```bash
+# Démarrer le frontend React (terminal 2)
+cd apps/web
+pnpm dev
+```
+
+L'application sera accessible à :
+- **Backend API**: http://localhost:3000/api/v1
+- **Swagger Docs**: http://localhost:3000/api/docs
+- **Frontend**: http://localhost:3001
+
+### Comptes de Démonstration
+
+Utilisez ces comptes pour vous connecter au frontend :
+
+| Email | Mot de passe | Rôle |
+|-------|--------------|------|
+| admin@democompany.be | admin123 | Administrateur |
+| commercial@democompany.be | admin123 | Commercial |
+| accounting@democompany.be | admin123 | Comptable |
 
 ### Variables d'environnement
 
@@ -148,34 +177,102 @@ Voir le schéma complet dans `apps/backend/prisma/schema.prisma`
 
 ## 🗓️ Plan de Développement
 
-### ✅ Sprint 1 - Core (Complété)
-- [x] Architecture et setup projet
-- [x] Prisma schema complet
-- [x] Module Authentication (JWT, guards, strategies)
-- [ ] Modules: Organizations, Users, Customers, Products, Taxes
-- [ ] Settings et Audit logs
+### ✅ Sprint 1 - Core (100% Complété)
+- [x] Architecture et setup projet (Turborepo + pnpm)
+- [x] Prisma schema complet (20+ modèles)
+- [x] Module Authentication (JWT, guards, strategies, refresh tokens)
+- [x] Module Organizations (multi-tenant)
+- [x] Module Users (RBAC avec 4 rôles)
+- [x] Module Customers (B2B/B2C, adresses, contacts)
+- [x] Module Products (produits et services)
+- [x] Module Taxes (gestion TVA)
+- [x] Module Settings (numérotation automatique)
+- [x] Module Audit (logs de traçabilité)
+- [x] Module Files (upload et gestion fichiers)
 
-### 🔄 Sprint 2 - Devis Vente (En cours)
-- [ ] CRUD Devis de vente
-- [ ] Lignes de devis avec calculs (HT, TVA, TTC)
-- [ ] Génération PDF
-- [ ] Exports CSV/XLSX
+### ✅ Sprint 2 - Devis Vente (100% Complété)
+- [x] CRUD Devis de vente et location
+- [x] Lignes de devis avec calculs (HT, TVA, TTC)
+- [x] Génération PDF professionnelle (Puppeteer)
+- [x] Exports CSV/XLSX (ExcelJS avec styling)
+- [x] Duplication de devis
+- [x] Gestion statuts et workflow
+- [x] Numérotation automatique (QV-XXXXX, QL-XXXXX)
 
-### Sprint 3 - Location & Véhicules
-- [ ] Module Véhicules (CRUD, documents)
-- [ ] Devis de location
-- [ ] Gestion disponibilité véhicules
+### ✅ Sprint 3 - Location & Véhicules (100% Complété)
+- [x] Module Véhicules (CRUD complet)
+- [x] Gestion documents véhicules (carte grise, assurance, contrôle)
+- [x] Devis de location avec période et kilométrage
+- [x] Vérification disponibilité véhicules
+- [x] Tracking maintenance et statuts
 
-### Sprint 4 - Livraison & Facturation
-- [ ] Module Livraison
-- [ ] Conversion devis → facture
-- [ ] Gestion paiements
+### ✅ Sprint 4 - Livraison & Facturation (100% Complété)
+- [x] Module Livraison (intégré aux devis)
+- [x] Calcul coûts de livraison (fixe + distance)
+- [x] Support trajet retour
+- [x] Conversion devis → facture automatique
+- [x] Module Facturation complet
+- [x] Gestion paiements multiples
+- [x] Calcul automatique des statuts (PAID, PARTIAL)
 
-### Sprint 5 - Dépenses & Finalisation
-- [ ] Module Dépenses avec uploads
-- [ ] Catégorisation et workflows
-- [ ] Exports comptables
-- [ ] Security hardening
+### ✅ Sprint 5 - Dépenses & Finalisation (100% Complété)
+- [x] Module Dépenses avec uploads multiples
+- [x] Catégorisation personnalisable
+- [x] Workflow d'approbation (DRAFT → SUBMITTED → APPROVED/REJECTED)
+- [x] Calcul automatique TVA (TTC → HT)
+- [x] Exports pour comptabilité
+- [x] Security hardening (CORS, Helmet, Rate Limiting)
+
+### ✅ Sprint 6 - Frontend React (100% MVP Complété) 🎉
+
+**Pages Implémentées:**
+- [x] Page de Login avec authentification JWT
+- [x] Dashboard avec statistiques et KPIs
+- [x] Liste des devis avec filtres, recherche et exports
+- [x] **Création de devis** avec formulaire complet
+- [x] Détail d'un devis avec téléchargement PDF
+- [x] Liste des clients avec recherche
+- [x] **Création/édition de clients** avec modal
+
+**Formulaires:**
+- [x] **CustomerForm** avec React Hook Form + Zod
+- [x] **QuoteForm** avec React Hook Form + Zod
+- [x] Validation en temps réel
+- [x] Champs conditionnels (B2B/B2C, Sale/Rental)
+- [x] Sélecteurs dropdown (clients, types)
+- [x] Date pickers pour validité et location
+- [x] Modal dialogs pour édition inline
+
+**Features UI:**
+- [x] Layout responsive avec Sidebar et Header
+- [x] Navigation mobile (hamburger menu)
+- [x] Protected routes avec redirection
+- [x] Toast notifications (succès/erreur)
+- [x] Loading states sur toutes les pages
+- [x] Status badges avec couleurs
+- [x] Format français (dates, devises)
+- [x] Boutons d'export CSV/XLSX
+- [x] Téléchargement PDF des devis
+- [x] Boutons Modifier/Supprimer sur clients
+
+**État Technique:**
+- [x] React 18 + TypeScript
+- [x] Vite pour build ultra-rapide
+- [x] Tailwind CSS + shadcn/ui
+- [x] React Query pour data fetching
+- [x] Zustand pour state management
+- [x] Axios avec JWT interceptors
+- [x] Auto-refresh des tokens JWT
+- [x] React Hook Form + Zod validation
+- [x] Radix UI primitives (Dialog, Select, Label)
+
+**Prochaines Améliorations:**
+- [ ] Gestion des lignes de devis (inline editing)
+- [ ] Pages Véhicules, Factures, Dépenses
+- [ ] Pagination des listes
+- [ ] Filtres avancés (dates, montants)
+- [ ] Dark mode
+- [ ] Upload de fichiers (justificatifs)
 
 ## 🧪 Tests
 
@@ -247,14 +344,45 @@ Propriétaire - Tous droits réservés
 
 ## 🏁 État du Projet
 
-**Version**: 1.0.0 (MVP en développement)
+**Version**: 1.0.0 (MVP Backend + Frontend Complété ✅)
 
-**Progression**:
-- ✅ Architecture et setup
-- ✅ Prisma schema complet
-- ✅ Authentication system
-- 🔄 Core modules en cours
-- ⏳ Business modules à venir
+**Progression Backend**:
+- ✅ Architecture et setup (100%)
+- ✅ Prisma schema complet (20+ modèles)
+- ✅ Authentication system (JWT + Refresh tokens)
+- ✅ Core modules (9 modules - 100%)
+- ✅ Business modules (5 modules - 100%)
+- ✅ PDF Generation (Puppeteer)
+- ✅ Exports CSV/XLSX (ExcelJS)
+- ✅ 85+ endpoints API REST
+- ✅ Documentation Swagger complète
+- ✅ Multi-tenant + RBAC + Audit
+
+**Progression Frontend**:
+- ✅ Setup Vite + React + TypeScript
+- ✅ Routing avec React Router
+- ✅ Authentication (Login, JWT, Protected Routes)
+- ✅ Layout responsive (Sidebar, Header)
+- ✅ Dashboard avec statistiques
+- ✅ Module Devis (liste, détail, exports, PDF, **création**)
+- ✅ Module Clients (liste, recherche, **création/édition/suppression**)
+- ✅ React Hook Form + Zod validation
+- ✅ React Query pour data fetching
+- ✅ Zustand pour state management
+- ✅ shadcn/ui components + Radix UI
+- ✅ Toast notifications
+- ✅ Loading states & error handling
+- ✅ Modal dialogs pour formulaires
+
+**Backend MVP: 100% ✅**
+**Frontend MVP: 100% ✅** 🎉
+
+**Prochaines Étapes**:
+- ⏳ Gestion des lignes de devis (inline editing)
+- ⏳ Modules Véhicules, Factures, Dépenses (Frontend)
+- ⏳ Tests unitaires et E2E
+- ⏳ CI/CD Pipeline
+- ⏳ Déploiement production
 
 ---
 
