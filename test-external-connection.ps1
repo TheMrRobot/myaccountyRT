@@ -95,8 +95,8 @@ Write-Host "Pour HeidiSQL:" -ForegroundColor Yellow
 Write-Host "  - Network type: PostgreSQL (TCP/IP)" -ForegroundColor White
 Write-Host "  - Library: libpq (PostgreSQL native)" -ForegroundColor White
 Write-Host ""
-Write-Host "Si ça ne marche toujours pas:" -ForegroundColor Yellow
-Write-Host "  1. Dans HeidiSQL, cliquez 'Test' pour voir le message d'erreur exact" -ForegroundColor White
-Write-Host "  2. Essayez d'abord sans spécifier de database" -ForegroundColor White
-Write-Host "  3. Vérifiez que vous utilisez libpq et pas un autre driver" -ForegroundColor White
+Write-Host "Si ca ne marche toujours pas:" -ForegroundColor Yellow
+Write-Host "  1. Dans HeidiSQL, cliquez Test pour voir le message d'erreur exact" -ForegroundColor White
+Write-Host "  2. Essayez d'abord sans specifier de database" -ForegroundColor White
+Write-Host "  3. Verifiez que vous utilisez libpq et pas un autre driver" -ForegroundColor White
 Write-Host ""
